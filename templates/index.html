@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f5;
+            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
             display: flex;
@@ -21,13 +21,13 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             width: 90%;
-            max-width: 400px;
+            max-width: 500px;
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 26px;
             color: #333;
             margin-bottom: 20px;
         }
@@ -35,29 +35,35 @@
         .button-group {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         button {
             width: 100%;
             padding: 15px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             color: white;
             background-color: #007BFF;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         button:hover {
             background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background-color: #c0c0c0;
+            cursor: not-allowed;
         }
 
         #message {
             margin-top: 20px;
-            font-size: 16px;
+            font-size: 18px;
             color: #555;
         }
     </style>
@@ -74,43 +80,45 @@
 
     <script>
         function vote(winner, loser) {
-            // 禁用按钮，防止重复点击
-            document.getElementById("button1").disabled = true;
-            document.getElementById("button2").disabled = true;
+            // 禁用按钮以防止重复点击
+            const button1 = document.getElementById("button1");
+            const button2 = document.getElementById("button2");
+            const message = document.getElementById("message");
+
+            button1.disabled = true;
+            button2.disabled = true;
 
             // 发送投票请求
             fetch('/vote', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ winner, loser })
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('message').textContent = data.message || "投票完成";
+                message.textContent = data.message || "投票完成";
 
-                // 动态获取新的干员数据
-                fetch('/get-new-chars')
-                .then(response => response.json())
-                .then(newData => {
-                    // 更新按钮文本
-                    document.getElementById("button1").textContent = newData.char1;
-                    document.getElementById("button1").setAttribute('onclick', `vote('${newData.char1}', '${newData.char2}')`);
+                // 获取新的选项
+                return fetch('/get-new-chars');
+            })
+            .then(response => response.json())
+            .then(newData => {
+                // 更新按钮内容和事件
+                button1.textContent = newData.char1;
+                button1.setAttribute('onclick', `vote('${newData.char1}', '${newData.char2}')`);
 
-                    document.getElementById("button2").textContent = newData.char2;
-                    document.getElementById("button2").setAttribute('onclick', `vote('${newData.char2}', '${newData.char1}')`);
+                button2.textContent = newData.char2;
+                button2.setAttribute('onclick', `vote('${newData.char2}', '${newData.char1}')`);
 
-                    // 恢复按钮状态
-                    document.getElementById("button1").disabled = false;
-                    document.getElementById("button2").disabled = false;
-                });
+                // 启用按钮
+                button1.disabled = false;
+                button2.disabled = false;
             })
             .catch(error => {
-                console.error("投票失败：", error);
-                document.getElementById('message').textContent = "投票失败，请重试！";
-                document.getElementById("button1").disabled = false;
-                document.getElementById("button2").disabled = false;
+                console.error("发生错误：", error);
+                message.textContent = "操作失败，请重试！";
+                button1.disabled = false;
+                button2.disabled = false;
             });
         }
     </script>
