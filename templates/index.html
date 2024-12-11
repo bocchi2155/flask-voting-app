@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: #f0f0f5;
             margin: 0;
             padding: 0;
             display: flex;
@@ -19,30 +19,34 @@
         .container {
             text-align: center;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 80%;
-            max-width: 500px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
         }
 
         h1 {
             font-size: 24px;
+            color: #333;
             margin-bottom: 20px;
         }
 
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         button {
-            display: inline-block;
             width: 100%;
-            max-width: 200px;
             padding: 15px;
-            margin: 10px auto;
             font-size: 18px;
             font-weight: bold;
             color: white;
             background-color: #007BFF;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
@@ -54,15 +58,17 @@
         #message {
             margin-top: 20px;
             font-size: 16px;
-            color: #333;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>请选择更强的干员</h1>
-        <button id="button1" onclick="vote('{{ char1 }}', '{{ char2 }}')">{{ char1 }}</button>
-        <button id="button2" onclick="vote('{{ char2 }}', '{{ char1 }}')">{{ char2 }}</button>
+        <div class="button-group">
+            <button id="button1" onclick="vote('{{ char1 }}', '{{ char2 }}')">{{ char1 }}</button>
+            <button id="button2" onclick="vote('{{ char2 }}', '{{ char1 }}')">{{ char2 }}</button>
+        </div>
         <p id="message"></p>
     </div>
 
@@ -83,13 +89,26 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('message').textContent = data.message || "投票完成";
-                // 1秒后刷新页面
-                setTimeout(() => location.reload(), 1000);
+
+                // 动态获取新的干员数据
+                fetch('/get-new-chars')
+                .then(response => response.json())
+                .then(newData => {
+                    // 更新按钮文本
+                    document.getElementById("button1").textContent = newData.char1;
+                    document.getElementById("button1").setAttribute('onclick', `vote('${newData.char1}', '${newData.char2}')`);
+
+                    document.getElementById("button2").textContent = newData.char2;
+                    document.getElementById("button2").setAttribute('onclick', `vote('${newData.char2}', '${newData.char1}')`);
+
+                    // 恢复按钮状态
+                    document.getElementById("button1").disabled = false;
+                    document.getElementById("button2").disabled = false;
+                });
             })
             .catch(error => {
                 console.error("投票失败：", error);
                 document.getElementById('message').textContent = "投票失败，请重试！";
-                // 恢复按钮状态
                 document.getElementById("button1").disabled = false;
                 document.getElementById("button2").disabled = false;
             });
