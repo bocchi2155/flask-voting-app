@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 import random
 from collections import Counter
+import json
+import os
 
 app = Flask(__name__)
 
@@ -22,8 +24,23 @@ character_names = [
     "麒麟R夜刀", "琳琅诗怀雅", "艾拉", "阿斯卡纶", "弑君者", "引星棘刺"
 ]
 
+# 文件存储路径
+VOTES_FILE = "votes.json"
+
+# 保存投票结果到文件
+def save_votes_to_file():
+    with open(VOTES_FILE, "w", encoding="utf-8") as f:
+        json.dump(votes, f, ensure_ascii=False)
+
+# 从文件加载投票结果
+def load_votes_from_file():
+    if os.path.exists(VOTES_FILE):
+        with open(VOTES_FILE, "r", encoding="utf-8") as f:
+            return Counter(json.load(f))
+    return Counter({name: 0 for name in character_names})
+
 # 初始化投票结果
-votes = Counter({name: 0 for name in character_names})
+votes = load_votes_from_file()
 
 @app.route("/")
 def index():
@@ -40,6 +57,7 @@ def vote():
     if winner in votes and loser in votes:
         votes[winner] += 1
         votes[loser] -= 1
+        save_votes_to_file()  # 保存数据
         return jsonify({"message": "投票成功", "votes": dict(votes)})
     else:
         return jsonify({"error": "无效的角色"}), 400
@@ -58,7 +76,6 @@ def results():
 def get_new_chars():
     """提供新的干员数据供投票"""
     char1, char2 = random.sample(character_names, 2)
-    # 输出到控制台以便调试
     print(f"Selected characters: {char1}, {char2}")
     return jsonify({"char1": char1, "char2": char2})
 
