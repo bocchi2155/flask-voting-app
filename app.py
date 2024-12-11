@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, render_template
 import random
 from collections import Counter
@@ -54,6 +53,14 @@ def results():
     ranked_results = [{"rank": i + 1, "name": name, "score": score} for i, (name, score) in enumerate(sorted_votes)]
     # 渲染模板并传递结果
     return render_template("results.html", results=ranked_results)
+
+@app.route("/get-new-chars")
+def get_new_chars():
+    """提供新的干员数据供投票"""
+    char1, char2 = random.sample(character_names, 2)
+    # 输出到控制台以便调试
+    print(f"Selected characters: {char1}, {char2}")
+    return jsonify({"char1": char1, "char2": char2})
 
 if __name__ == "__main__":
     app.run(debug=True)

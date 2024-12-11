@@ -77,50 +77,52 @@
         </div>
         <p id="message"></p>
     </div>
+<script>
+    function vote(winner, loser) {
+        // 禁用按钮，防止重复点击
+        const button1 = document.getElementById("button1");
+        const button2 = document.getElementById("button2");
+        const message = document.getElementById("message");
 
-    <script>
-        function vote(winner, loser) {
-            // 禁用按钮以防止重复点击
-            const button1 = document.getElementById("button1");
-            const button2 = document.getElementById("button2");
-            const message = document.getElementById("message");
+        button1.disabled = true;
+        button2.disabled = true;
 
-            button1.disabled = true;
-            button2.disabled = true;
+        // 发送投票请求
+        fetch('/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ winner, loser }) // 发送投票数据
+        })
+        .then(response => response.json()) // 解析投票结果的 JSON 数据
+        .then(data => {
+            message.textContent = data.message || "投票完成";
 
-            // 发送投票请求
-            fetch('/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ winner, loser })
-            })
-            .then(response => response.json())
-            .then(data => {
-                message.textContent = data.message || "投票完成";
+            // 请求新的干员数据
+            return fetch('/get-new-chars');
+        })
+        .then(response => response.json()) // 解析新的干员 JSON 数据
+        .then(newData => {
+            // 更新按钮显示内容为新干员的名字（中文字符）
+            button1.textContent = newData.char1;
+            button2.textContent = newData.char2;
 
-                // 获取新的选项
-                return fetch('/get-new-chars');
-            })
-            .then(response => response.json())
-            .then(newData => {
-                // 更新按钮内容和事件
-                button1.textContent = newData.char1;
-                button1.setAttribute('onclick', `vote('${newData.char1}', '${newData.char2}')`);
+            // 更新按钮的点击事件
+            button1.setAttribute('onclick', `vote('${newData.char1}', '${newData.char2}')`);
+            button2.setAttribute('onclick', `vote('${newData.char2}', '${newData.char1}')`);
 
-                button2.textContent = newData.char2;
-                button2.setAttribute('onclick', `vote('${newData.char2}', '${newData.char1}')`);
+            // 恢复按钮的可点击状态
+            button1.disabled = false;
+            button2.disabled = false;
+        })
+        .catch(error => {
+            console.error("发生错误：", error);
+            message.textContent = "操作失败，请重试！";
+            button1.disabled = false;
+            button2.disabled = false;
+        });
+    }
+</script>
 
-                // 启用按钮
-                button1.disabled = false;
-                button2.disabled = false;
-            })
-            .catch(error => {
-                console.error("发生错误：", error);
-                message.textContent = "操作失败，请重试！";
-                button1.disabled = false;
-                button2.disabled = false;
-            });
-        }
-    </script>
+    
 </body>
 </html>
