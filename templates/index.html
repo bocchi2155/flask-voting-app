@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>干员投票</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 500px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            display: inline-block;
+            width: 100%;
+            max-width: 200px;
+            padding: 15px;
+            margin: 10px auto;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>请选择更强的干员</h1>
+        <button id="button1" onclick="vote('{{ char1 }}', '{{ char2 }}')">{{ char1 }}</button>
+        <button id="button2" onclick="vote('{{ char2 }}', '{{ char1 }}')">{{ char2 }}</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        function vote(winner, loser) {
+            // 禁用按钮，防止重复点击
+            document.getElementById("button1").disabled = true;
+            document.getElementById("button2").disabled = true;
+
+            // 发送投票请求
+            fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ winner, loser })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('message').textContent = data.message || "投票完成";
+                // 1秒后刷新页面
+                setTimeout(() => location.reload(), 1000);
+            })
+            .catch(error => {
+                console.error("投票失败：", error);
+                document.getElementById('message').textContent = "投票失败，请重试！";
+                // 恢复按钮状态
+                document.getElementById("button1").disabled = false;
+                document.getElementById("button2").disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
